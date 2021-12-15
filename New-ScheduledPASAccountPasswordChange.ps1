@@ -71,9 +71,11 @@ function New-ScheduledPASAccountPasswordChange {
                 $ChangeTaskScriptBlock = "{Import-Module $WorkingDirectory\Invoke-PASAccountPasswordChange.ps1; Invoke-PASAccountPasswordChange -AccountId $AccountId -NewCredentialClixmlPath $CredentialFilePath -PVWAAddress $PvwaAddress -AppID $AppID -UserName $UserName -Address $Address -Safe $Safe -CentralCredentialProviderURL $CentralCredentialProviderURL}"
             }
         }
-
         $ScheduledTaskAction = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument "-NoProfile -WindowStyle Hidden -Command % `"$ChangeTaskScriptBlock`""
         $ScheduledTaskTrigger = New-ScheduledTaskTrigger -At $ChangeTime -Once
+        # The scheduled task needs to run under the same user that creates the Export-Clixml as Windows
+        # Data Protection API's encryption 'that only your user account on only that computer can decrypt
+        # the contents of the credential object' (see above link)
         $ScheduledTaskPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType S4U -RunLevel Limited
         $ScheduledTaskSettings = New-ScheduledTaskSettingsSet -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew
         $ScheduledTask = New-ScheduledTask -Action $ScheduledTaskAction -Trigger $ScheduledTaskTrigger -Principal $ScheduledTaskPrincipal -Settings $ScheduledTaskSettings

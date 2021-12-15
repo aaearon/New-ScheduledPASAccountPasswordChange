@@ -16,10 +16,11 @@ Describe "Invoke-PASAccountPasswordChange" {
                 UserName = 'DemoUser'
                 Address  = 'DOMAIN.COM'
             }
+            # Stolen from https://github.com/pspete/CredentialRetriever/blob/da1ce35bb2a317c903b0e895ffd9f6ae55f113f2/CredentialRetriever/Functions/Get-AIMCredential.ps1#L300
             $OutputObject | Add-Member -MemberType ScriptMethod -Name ToSecureString -Value {
                 $this.Password | ConvertTo-SecureString -AsPlainText -Force
             } -Force
-
+            # Stolen from https://github.com/pspete/CredentialRetriever/blob/da1ce35bb2a317c903b0e895ffd9f6ae55f113f2/CredentialRetriever/Functions/Get-AIMCredential.ps1#L307
             $OutputObject | Add-Member -MemberType ScriptMethod -Name ToCredential -Value {
                 New-Object System.Management.Automation.PSCredential($this.UserName, $this.ToSecureString())
             } -Force
