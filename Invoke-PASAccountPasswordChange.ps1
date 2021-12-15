@@ -52,7 +52,6 @@ function Invoke-PASAccountPasswordChange {
             Write-Error $Error
         }
 
-        Close-PASSession
         $ApiCredential = $ApiCredential.ToCredential()
         New-PASSession -BaseURI $PvwaAddress -type CyberArk -Credential $ApiCredential -concurrentSession $true -SkipCertificateCheck
     }

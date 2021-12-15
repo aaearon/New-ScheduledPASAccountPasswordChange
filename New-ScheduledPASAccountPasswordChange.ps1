@@ -2,29 +2,44 @@
 function New-ScheduledPASAccountPasswordChange {
     [CmdletBinding()]
     param (
-        # ID of the account that will have it's password changed
-        [Parameter(
-            Mandatory = $True
-        )]
-        [string]
-        $AccountId,
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
+        [string]$AccountId,
 
-        # Future password value
-        [Parameter(AttributeValues)]
-        [securestring]
-        $Password,
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
+        [securestring]$Password,
 
         # Parameter help description
-        [Parameter(AttributeValues)]
-        [datetime]
-        $ChangeTime,
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
+        [datetime]$ChangeTime,
 
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
         [string]$PvwaAddress,
-        [string]$AAMClientPath,
+
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
+        [string]$CentralCredentialProviderURL,
+
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [string]$CredentialProviderPath,
+
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
         [string]$AppID,
+
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
+        [string]$Safe,
+
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
         [string]$UserName,
-        [string]$Address,
-        [string]$Safe
+
+        [Parameter(ParameterSetName = 'CredentialProvider', Mandatory = $true)]
+        [Parameter(ParameterSetName = 'CentralCredentialProvider', Mandatory = $true)]
+        [string]$Address
     )
 
     begin {
@@ -47,8 +62,17 @@ function New-ScheduledPASAccountPasswordChange {
         $PasswordCredentialObject | Export-Clixml $CredentialFilePath
 
         # Create scheduled task
-        $ChangeTaskScriptBlock = "$WorkingDirectory\Invoke-PASAccountPasswordChange.ps1 -AccountId $AccountId -NewPasswordClixmlPath $CredentialFilePath -AppId windowsScript `"C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe`" -UserName serviceAccount01 -Address iosharp.lab -Safe Windows -PVWAAddress $PvwaAddress"
-        $ScheduledTaskAction = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument "-NoProfile -WindowStyle Hidden -Command $ChangeTaskScriptBlock"
+        switch ($PSCmdlet.ParameterSetName) {
+            'CredentialProvider' {
+                $ChangeTaskScriptBlock = "{Import-Module $WorkingDirectory\Invoke-PASAccountPasswordChange.ps1; Invoke-PASAccountPasswordChange -AccountId $AccountId -NewCredentialClixmlPath $CredentialFilePath -PVWAAddress $PvwaAddress -AppID $AppID -UserName $UserName -Address $Address -Safe $Safe -CredentialProviderPath $CredentialProviderPath}"
+            }
+
+            'CentralCredentialProvider' {
+                $ChangeTaskScriptBlock = "{Import-Module $WorkingDirectory\Invoke-PASAccountPasswordChange.ps1; Invoke-PASAccountPasswordChange -AccountId $AccountId -NewCredentialClixmlPath $CredentialFilePath -PVWAAddress $PvwaAddress -AppID $AppID -UserName $UserName -Address $Address -Safe $Safe -CentralCredentialProviderURL $CentralCredentialProviderURL}"
+            }
+        }
+
+        $ScheduledTaskAction = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument "-NoProfile -Command $ChangeTaskScriptBlock"
         $ScheduledTaskTrigger = New-ScheduledTaskTrigger -At $ChangeTime -Once
         $ScheduledTaskPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
         $ScheduledTask = New-ScheduledTask -Action $ScheduledTaskAction -Trigger $ScheduledTaskTrigger -Principal $ScheduledTaskPrincipal
