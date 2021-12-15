@@ -17,7 +17,14 @@ function New-ScheduledPASAccountPasswordChange {
         # Parameter help description
         [Parameter(AttributeValues)]
         [datetime]
-        $ChangeTime
+        $ChangeTime,
+
+        [string]$PvwaAddress,
+        [string]$AAMClientPath,
+        [string]$AppID,
+        [string]$UserName,
+        [string]$Address,
+        [string]$Safe
     )
 
     begin {
@@ -40,7 +47,7 @@ function New-ScheduledPASAccountPasswordChange {
         $PasswordCredentialObject | Export-Clixml $CredentialFilePath
 
         # Create scheduled task
-        $ChangeTaskScriptBlock = "$WorkingDirectory\Invoke-PASAccountPasswordChange.ps1 -AccountId $AccountId -NewPasswordClixmlPath $CredentialFilePath -AppId windowsScript `"C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe`" -UserName serviceAccount01 -Address iosharp.lab -Safe Windows -PVWAAddress https://comp01/PasswordVault"
+        $ChangeTaskScriptBlock = "$WorkingDirectory\Invoke-PASAccountPasswordChange.ps1 -AccountId $AccountId -NewPasswordClixmlPath $CredentialFilePath -AppId windowsScript `"C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe`" -UserName serviceAccount01 -Address iosharp.lab -Safe Windows -PVWAAddress $PvwaAddress"
         $ScheduledTaskAction = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument "-NoProfile -WindowStyle Hidden -Command $ChangeTaskScriptBlock"
         $ScheduledTaskTrigger = New-ScheduledTaskTrigger -At $ChangeTime -Once
         $ScheduledTaskPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)

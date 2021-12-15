@@ -2,7 +2,6 @@
     . $PSScriptRoot/Invoke-PASAccountPasswordChange.ps1
 
     $AAMClientPath = 'C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe'
-    $AppID = 'windowsScript'
     $CredentialClixmlPath = 'TestDrive:\Credential.ps1.credential'
 
     New-Object System.Management.Automation.PSCredential("DemoUser", ('DemoPass' | ConvertTo-SecureString -AsPlainText -Force)) | Export-Clixml -Path $CredentialClixmlPath
@@ -30,7 +29,9 @@ Describe "Invoke-PASAccountPasswordChange" {
         Mock Close-PASSession -MockWith {}
         Mock Invoke-PASCPMOperation -MockWith {}
 
-        Invoke-PASAccountPasswordChange -AccountId 1_1 -AAMClientPath $AAMClientPath -AppID $AppID -PVWAAddress https://comp01 -NewPasswordClixmlPath $CredentialClixmlPath
+        Invoke-PASAccountPasswordChange -AccountId 1_1 -CredentialProviderPath $AAMClientPath -AppID scheduledPasswordChange `
+            -PvwaAddress https://comp01 -NewCredentialClixmlPath $CredentialClixmlPath -Safe CyberArk `
+            -UserName serviceAccount01 -Address 192.168.0.50
 
         Should -Invoke -CommandName Invoke-PASCPMOperation -ParameterFilter { $ChangeImmediately -eq $true -and $ChangeTask}
     }
