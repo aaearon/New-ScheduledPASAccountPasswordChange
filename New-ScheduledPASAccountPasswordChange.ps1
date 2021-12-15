@@ -72,10 +72,11 @@ function New-ScheduledPASAccountPasswordChange {
             }
         }
 
-        $ScheduledTaskAction = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument "-NoProfile -Command $ChangeTaskScriptBlock"
+        $ScheduledTaskAction = New-ScheduledTaskAction -Execute 'PowerShell.exe' -Argument "-NoProfile -WindowStyle Hidden -Command % `"$ChangeTaskScriptBlock`""
         $ScheduledTaskTrigger = New-ScheduledTaskTrigger -At $ChangeTime -Once
-        $ScheduledTaskPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)
-        $ScheduledTask = New-ScheduledTask -Action $ScheduledTaskAction -Trigger $ScheduledTaskTrigger -Principal $ScheduledTaskPrincipal
+        $ScheduledTaskPrincipal = New-ScheduledTaskPrincipal -UserId ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name) -LogonType S4U -RunLevel Limited
+        $ScheduledTaskSettings = New-ScheduledTaskSettingsSet -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew
+        $ScheduledTask = New-ScheduledTask -Action $ScheduledTaskAction -Trigger $ScheduledTaskTrigger -Principal $ScheduledTaskPrincipal -Settings $ScheduledTaskSettings
 
         Register-ScheduledTask "Password Change for $AccountId" -InputObject $ScheduledTask
     }
