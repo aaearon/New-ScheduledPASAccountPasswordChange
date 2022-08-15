@@ -21,8 +21,8 @@ On the machine you are creating the Scheduled Task on:
 ```powershell
 $arguments = @{
     AccountId = '12_7'
-    AppId = scheduledPasswordChangeScript
-    ChangeTime = ((Get-Date) AddSeconds(5))
+    AppId = 'scheduledPasswordChangeScript'
+    ChangeTime = ((Get-Date).AddSeconds(5))
     PvwaAddress = 'https://comp01'
     Password = ("VeryComplex!23" | ConvertTo-SecureString -AsPlainText -Force)
     Safe = 'CyberArk'
