@@ -4,11 +4,11 @@
     $AAMClientPath = 'C:\Program Files (x86)\CyberArk\ApplicationPasswordSdk\CLIPasswordSDK.exe'
     $CredentialClixmlPath = 'TestDrive:\Credential.ps1.credential'
 
-    New-Object System.Management.Automation.PSCredential("DemoUser", ('DemoPass' | ConvertTo-SecureString -AsPlainText -Force)) | Export-Clixml -Path $CredentialClixmlPath
+    New-Object System.Management.Automation.PSCredential('DemoUser', ('DemoPass' | ConvertTo-SecureString -AsPlainText -Force)) | Export-Clixml -Path $CredentialClixmlPath
 }
 
-Describe "Invoke-PASAccountPasswordChange" {
-    It "invokes an immediate password change" {
+Describe 'Invoke-PASAccountPasswordChange' {
+    It 'invokes an immediate password change' {
         Mock Test-Path -MockWith { return $True } -ModuleName CredentialRetriever
         Mock Get-AIMCredential -MockWith {
             $OutputObject = [PSCustomObject]@{
@@ -34,6 +34,6 @@ Describe "Invoke-PASAccountPasswordChange" {
             -PvwaAddress https://comp01 -NewCredentialClixmlPath $CredentialClixmlPath -Safe CyberArk `
             -UserName serviceAccount01 -Address 192.168.0.50
 
-        Should -Invoke -CommandName Invoke-PASCPMOperation -ParameterFilter { $ChangeImmediately -eq $true -and $ChangeTask}
+        Should -Invoke -CommandName Invoke-PASCPMOperation -ParameterFilter { $ChangeImmediately -eq $true -and $ChangeTask }
     }
 }

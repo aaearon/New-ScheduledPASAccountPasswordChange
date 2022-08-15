@@ -77,7 +77,7 @@ function New-ScheduledPASAccountPasswordChange {
         $CredentialFilePath = "$WorkingDirectory/Invoke-PASAccountPasswordChange.ps1.pscredential"
         # When wanting to save soemthing encrypted, Export-Clixml seems to expect that the input
         # PSCredential object so we need to convert the password from the provided secure string to a PSCredential
-        $PasswordCredentialObject = New-Object System.Management.Automation.PSCredential("dummydata", $Password)
+        $PasswordCredentialObject = New-Object System.Management.Automation.PSCredential('dummydata', $Password)
         $PasswordCredentialObject | Export-Clixml $CredentialFilePath
 
         ## Create scheduled task
